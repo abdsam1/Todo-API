@@ -10,7 +10,7 @@ app.use(bodyParser.json()); //When a JSON request comes in
 //body-parser is going to parse it for us,
 //making it accessible.
 
-//GET /todosP
+//GET /todos
 //query ?completed=true&q=lunch
 app.get('/todos', function(req, res) {
 	var queryParams = req.query;
