@@ -12,41 +12,59 @@ app.use(bodyParser.json()); //When a JSON request comes in
 //making it accessible.
 
 //GET /todos
-//query ?completed=true&q=lunch
+//query /todos?completed=true&q=lunch
 app.get('/todos', function(req, res) {
-	var queryParams = req.query;
-	var filteredTodos = todos;
-	if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-		filteredTodos = _.where(filteredTodos, {
-			completed: true
-		});
-	} else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-		filteredTodos = _.where(filteredTodos, {
-			completed: false
-		});
+	var query = req.query;
+	var where = {};
+	if (query.hasOwnProperty('completed') && query.completed === 'true') {
+		where.completed = true;
 	}
-
-	if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-		filteredTodos = _.filter(filteredTodos, function(todo) {
-			return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
-		});
+	else if(query.hasOwnProperty('completed') && query.completed === 'false'){
+		where.completed = false;
 	}
+	if(query.hasOwnProperty('q') && query.q.length > 0){
+		where.description = {
+			$like: '%' + query.q + '%'
+		}
+	}
+	db.todo.findAll({
+		where : where
+	}).then(function (todos){
+		res.json(todos);
+	}).catch(function(e){
+		res.json(e.toJSON());
+	});
+	// var filteredTodos = todos;
+	// if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+	// 	filteredTodos = _.where(filteredTodos, {
+	// 		completed: true
+	// 	});
+	// } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+	// 	filteredTodos = _.where(filteredTodos, {
+	// 		completed: false
+	// 	});
+	// }
 
-	res.json(filteredTodosP);
+	// if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+	// 	filteredTodos = _.filter(filteredTodos, function(todo) {
+	// 		return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
+	// 	});
+	// }
+
+	// res.json(filteredTodosP);
 })
 
 //GET todos/:id
 
 app.get('/todos/:id', function(req, res) {
 	var todoId = parseInt(req.params.id);
-	db.todo.findById(todoId).then(function(todo){
-		if(todo){
+	db.todo.findById(todoId).then(function(todo) {
+		if (todo) {
 			res.json(todo.toJSON());
-		}
-		else{
+		} else {
 			res.status(404).send();
 		}
-	}).catch(function(e){
+	}).catch(function(e) {
 		res.status(500).send();
 	});
 	// var matchedTodoItem = _.findWhere(todos, {
