@@ -129,28 +129,49 @@ app.delete('/todos/:id', function(req, res) {
 
 app.put('/todos/:id', function(req, res) {
 	var todoId = parseInt(req.params.id);
-	var matchedTodoItem = _.findWhere(todos, {
-		id: todoId
-	});
 	var body = _.pick(req.body, 'completed', 'description');
-	var update = {};
-	if (!matchedTodoItem) {
-		return res.status(404).send();
+	var attributes = {};
+	if (body.hasOwnProperty('completed')) {
+		attributes.completed = body.completed;
 	}
-	if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
-		update.completed = body.completed;
-	} else if (body.hasOwnProperty('completed')) {
-		// return res.status(400).send();
+	if (body.hasOwnProperty('description')) {
+		attributes.description = body.description;
 	}
+	db.todo.findById(todoId).then(function(todo) {
+		if (todo) {
+			todo.update(attributes).then(function(todo) {
+				res.json(todo.toJSON());
+			}, function(error) {
+				res.status(400).json(error.toJSON());
+			});
+		} else {
+			res.status(404).send();
+		}
+	}, function() {
+		res.status(500).send();
+	});
+	// var matchedTodoItem = _.findWhere(todos, {
+	// 	id: todoId
+	// });
+	// var body = _.pick(req.body, 'completed', 'description');
+	// var update = {};
+	// if (!matchedTodoItem) {
+	// 	return res.status(404).send();
+	// }
+	// if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+	// 	update.completed = body.completed;
+	// } else if (body.hasOwnProperty('completed')) {
+	// 	// return res.status(400).send();
+	// }
 
-	if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
-		update.description = body.description;
-	} else if (body.hasOwnProperty('description')) {
-		return res.status(400).send();
-	}
+	// if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
+	// 	update.description = body.description;
+	// } else if (body.hasOwnProperty('description')) {
+	// 	return res.status(400).send();
+	// }
 
-	_.extend(matchedTodoItem, update);
-	res.json(matchedTodoItem);
+	// _.extend(matchedTodoItem, update);
+	// res.json(matchedTodoItem);
 });
 
 db.sequelize.sync().then(function() {
