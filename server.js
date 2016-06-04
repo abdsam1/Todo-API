@@ -18,20 +18,19 @@ app.get('/todos', function(req, res) {
 	var where = {};
 	if (query.hasOwnProperty('completed') && query.completed === 'true') {
 		where.completed = true;
-	}
-	else if(query.hasOwnProperty('completed') && query.completed === 'false'){
+	} else if (query.hasOwnProperty('completed') && query.completed === 'false') {
 		where.completed = false;
 	}
-	if(query.hasOwnProperty('q') && query.q.length > 0){
+	if (query.hasOwnProperty('q') && query.q.length > 0) {
 		where.description = {
 			$like: '%' + query.q + '%'
 		}
 	}
 	db.todo.findAll({
-		where : where
-	}).then(function (todos){
+		where: where
+	}).then(function(todos) {
 		res.json(todos);
-	}).catch(function(e){
+	}).catch(function(e) {
 		res.json(e.toJSON());
 	});
 	// var filteredTodos = todos;
@@ -100,16 +99,32 @@ app.post('/todos', function(req, res) {
 
 app.delete('/todos/:id', function(req, res) {
 	var todoToBeDeletedId = parseInt(req.params.id);
-	var toBeDeleted = _.findWhere(todos, {
-		id: todoToBeDeletedId
+	db.todo.destroy({
+		where: {
+			id: todoToBeDeletedId
+		}
+	}).then(function(rowsDeleted) {
+		if (rowsDeleted > 0) {
+			res.status(204).send();
+
+		} else {
+			res.status(404).json({
+				error: "Id did not match"
+			});
+		}
+	}, function(error) {
+		res.status(500).send();
 	});
-	if (toBeDeleted) {
-		todos = _.without(todos, toBeDeleted);
-		console.log('Deleted Todo: ' + toBeDeleted.description);
-		res.json(toBeDeleted);
-	} else {
-		res.status(400).send();
-	}
+	// var toBeDeleted = _.findWhere(todos, {
+	// 	id: todoToBeDeletedId
+	// });
+	// if (toBeDeleted) {
+	// 	todos = _.without(todos, toBeDeleted);
+	// 	console.log('Deleted Todo: ' + toBeDeleted.description);
+	// 	res.json(toBeDeleted);
+	// } else {
+	// 	res.status(400).send();
+	// }
 });
 
 app.put('/todos/:id', function(req, res) {

@@ -10,7 +10,7 @@
     "node": "0.10.25",
     "npm":"1.3.10"
   },
-  "author": "",
+  "author": "abdul samad",
   "license": "BSD-2-Clause",
   "dependencies": {
     "express": "~4.13.3",
