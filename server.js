@@ -1,12 +1,14 @@
 var express = require('express');
+var app = express();
 var bodyParser = require('body-parser');
 var _ = require('underscore');
 var bcrypt = require('bcrypt');
 var db = require('./db.js');
-var app = express();
 var port = process.env.PORT || 3000;
+console.log(port);
 var todoNext = 0;
 var todos = [];
+var middleware = require('./middleware.js')(db);
 
 app.use(bodyParser.json()); //When a JSON request comes in
 //body-parser is going to parse it for us,
@@ -14,7 +16,7 @@ app.use(bodyParser.json()); //When a JSON request comes in
 
 //GET /todos
 //query /todos?completed=true&q=lunch
-app.get('/todos', function(req, res) {
+app.get('/todos', middleware.requireAuthentication, function(req, res) {
 	var query = req.query;
 	var where = {};
 	if (query.hasOwnProperty('completed') && query.completed === 'true') {
@@ -56,7 +58,7 @@ app.get('/todos', function(req, res) {
 
 //GET todos/:id
 
-app.get('/todos/:id', function(req, res) {
+app.get('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var todoId = parseInt(req.params.id);
 	db.todo.findById(todoId).then(function(todo) {
 		if (todo) {
@@ -78,7 +80,7 @@ app.get('/todos/:id', function(req, res) {
 });
 
 //POST /todos
-app.post('/todos', function(req, res) {
+app.post('/todos', middleware.requireAuthentication, function(req, res) {
 	var body = _.pick(req.body, 'description', 'completed');
 	db.todo.create(body).then(function(todo) {
 		res.json(todo.toJSON());
@@ -98,7 +100,7 @@ app.post('/todos', function(req, res) {
 
 //DELETE /todos/:id
 
-app.delete('/todos/:id', function(req, res) {
+app.delete('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var todoToBeDeletedId = parseInt(req.params.id);
 	db.todo.destroy({
 		where: {
@@ -128,7 +130,7 @@ app.delete('/todos/:id', function(req, res) {
 	// }
 });
 
-app.put('/todos/:id', function(req, res) {
+app.put('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var todoId = parseInt(req.params.id);
 	var body = _.pick(req.body, 'completed', 'description');
 	var attributes = {};
@@ -188,7 +190,7 @@ app.post('/users/login', function(req, res) {
 	var body = _.pick(req.body, 'email', 'password');
 
 	db.user.authenticate(body).then(function(user) {
-	var token = user.generateToken('authentication');
+		var token = user.generateToken('authentication');
 		if (token) {
 			res.header('Auth', token).json(user.toPublicJSON());
 		} else {
@@ -202,9 +204,9 @@ app.post('/users/login', function(req, res) {
 db.sequelize.sync({
 	force: true
 }).then(function() {
-	app.listen(port, function() {
-		console.log('Express Server running on port ' + port);
-	});
+		app.listen(port, function() {
+			console.log('Express Server running on port ' + port);
+		});	
 }).catch(function(e) {
 	console.log(e.toJSON());
 });
