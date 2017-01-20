@@ -22,16 +22,17 @@ var Todo = sequelize.define('todo', {
 
 sequelize.sync({
 
-// 	force: true
+	force: true
 }).then(function() {
-		Todo.findById(3).then(function(todo) {
-		if (todo) {
-			console.log(todo.toJSON());
-		}
-	}).catch(function(error) {
-		console.log('Item not found');
-		// console.log(error);
-	});
+		console.log('Everything is synced!');
+	// 	Todo.findById(3).then(function(todo) {
+	// 	if (todo) {
+	// 		console.log(todo.toJSON());
+	// 	}
+	// }).catch(function(error) {
+	// 	console.log('Item not found');
+	// 	// console.log(error);
+	// });
 // 	Todo.create({
 // 		description: 'Take out trash'
 // 	}).then(function(todo) {

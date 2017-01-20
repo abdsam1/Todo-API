@@ -19,6 +19,7 @@ app.use(bodyParser.json()); //When a JSON request comes in
 app.get('/todos', middleware.requireAuthentication, function(req, res) {
 	var query = req.query;
 	var where = {};
+	where.userId = req.user.id;
 	if (query.hasOwnProperty('completed') && query.completed === 'true') {
 		where.completed = true;
 	} else if (query.hasOwnProperty('completed') && query.completed === 'false') {
@@ -82,6 +83,8 @@ app.get('/todos/:id', middleware.requireAuthentication, function(req, res) {
 //POST /todos
 app.post('/todos', middleware.requireAuthentication, function(req, res) {
 	var body = _.pick(req.body, 'description', 'completed');
+	body.userId = req.user.id;
+	// console.log(body);
 	db.todo.create(body).then(function(todo) {
 		res.json(todo.toJSON());
 	}).catch(function(e) {
@@ -202,11 +205,11 @@ app.post('/users/login', function(req, res) {
 });
 
 db.sequelize.sync({
-	force: true
+	// force: true
 }).then(function() {
-		app.listen(port, function() {
-			console.log('Express Server running on port ' + port);
-		});	
+	app.listen(port, function() {
+		console.log('Express Server running on port ' + port);
+	});
 }).catch(function(e) {
 	console.log(e.toJSON());
 });
